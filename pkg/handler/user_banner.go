@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	banner "github.com/zanzhit/avito_task"
+	"github.com/zanzhit/avito_task/pkg/errs"
 )
 
 func (h *Handler) getUserBanner(c *gin.Context) {
@@ -16,7 +17,7 @@ func (h *Handler) getUserBanner(c *gin.Context) {
 	tagId := c.Query("tag_id")
 
 	if featureId == "" && tagId == "" {
-		newErrorResponse(c, http.StatusBadRequest, "invalid feature/tag param")
+		newErrorResponse(c, http.StatusBadRequest, "feature/tag missing")
 	}
 
 	input.Feature, err = strconv.Atoi(featureId)
@@ -43,8 +44,14 @@ func (h *Handler) getUserBanner(c *gin.Context) {
 
 	banner, err := h.services.UserBanner.GetUserBanner(input, lastRevision)
 	if err != nil {
-		newErrorResponse(c, http.StatusInternalServerError, err.Error())
-		return
+		switch err.(type) {
+		case *errs.ErrBannerNotFound:
+			c.Status(http.StatusNotFound)
+			return
+		default:
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, banner)
