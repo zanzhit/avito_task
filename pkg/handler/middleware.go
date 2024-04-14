@@ -14,24 +14,24 @@ const (
 func (h *Handler) userIdentity(c *gin.Context) {
 	header := c.GetHeader(authorizationHeader)
 	if header == "" {
-		newErrorResponse(c, http.StatusUnauthorized, "Пользователь не авторизован")
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 {
-		newErrorResponse(c, http.StatusUnauthorized, "Пользователь не авторизован")
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 
 	if len(headerParts[1]) == 0 {
-		newErrorResponse(c, http.StatusUnauthorized, "Пользователь не авторизован")
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 
 	_, err := h.services.Authorization.ParseToken(headerParts[1])
 	if err != nil {
-		newErrorResponse(c, http.StatusUnauthorized, err.Error())
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 }
@@ -39,18 +39,18 @@ func (h *Handler) userIdentity(c *gin.Context) {
 func (h *Handler) adminOnly(c *gin.Context) {
 	header := c.GetHeader(authorizationHeader)
 	if header == "" {
-		newErrorResponse(c, http.StatusUnauthorized, "Пользователь не авторизован")
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 
 	headerParts := strings.Split(header, " ")
 	if len(headerParts) != 2 {
-		newErrorResponse(c, http.StatusUnauthorized, "Пользователь не авторизован")
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 
 	if len(headerParts[1]) == 0 {
-		newErrorResponse(c, http.StatusUnauthorized, "Пользователь не авторизован")
+		c.Status(http.StatusUnauthorized)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *Handler) adminOnly(c *gin.Context) {
 	}
 
 	if role != "admin" {
-		newErrorResponse(c, http.StatusForbidden, "Пользователь не имеет доступа")
+		c.Status(http.StatusForbidden)
 		return
 	}
 

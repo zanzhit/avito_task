@@ -5,10 +5,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	badRequest = "Некорректные данные"
-)
-
 type errorResponse struct {
 	Message string `json:"message"`
 }

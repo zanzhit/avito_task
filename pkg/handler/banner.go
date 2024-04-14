@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	banner "github.com/zanzhit/avito_task"
+	"github.com/zanzhit/avito_task/pkg/errs"
 )
 
 func (h *Handler) getBanner(c *gin.Context) {
@@ -18,7 +19,7 @@ func (h *Handler) getBanner(c *gin.Context) {
 	if featureId != "" {
 		input.Feature, err = strconv.Atoi(featureId)
 		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, "invalid feature param")
+			c.Status(http.StatusBadRequest)
 			return
 		}
 	}
@@ -26,7 +27,7 @@ func (h *Handler) getBanner(c *gin.Context) {
 	if tagId != "" {
 		tag, err := strconv.Atoi(tagId)
 		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, "invalid tag param")
+			c.Status(http.StatusBadRequest)
 			return
 		}
 
@@ -39,7 +40,7 @@ func (h *Handler) getBanner(c *gin.Context) {
 	if c.Query("limit") != "" {
 		limit, err = strconv.Atoi(c.Query("limit"))
 		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, "invalid limit param")
+			c.Status(http.StatusBadRequest)
 			return
 		}
 	}
@@ -47,7 +48,7 @@ func (h *Handler) getBanner(c *gin.Context) {
 	if c.Query("offset") != "" {
 		offset, err = strconv.Atoi(c.Query("offset"))
 		if err != nil {
-			newErrorResponse(c, http.StatusBadRequest, "invalid offset param")
+			c.Status(http.StatusBadRequest)
 			return
 		}
 	}
@@ -58,15 +59,13 @@ func (h *Handler) getBanner(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, []interface{}{
-		banner,
-	})
+	c.JSON(http.StatusOK, banner)
 }
 
 func (h *Handler) createBanner(c *gin.Context) {
 	var input banner.Banner
 	if err := c.BindJSON(&input); err != nil {
-		newErrorResponse(c, http.StatusBadRequest, "")
+		newErrorResponse(c, http.StatusBadRequest, "invalid input body")
 		return
 	}
 
@@ -76,15 +75,65 @@ func (h *Handler) createBanner(c *gin.Context) {
 		return
 	}
 
+	if id == -1 {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
 	c.JSON(http.StatusOK, map[string]interface{}{
-		"id": id,
+		"banner_id": id,
 	})
 }
 
 func (h *Handler) updateBanner(c *gin.Context) {
+	bannerId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "wrong banner id format")
+		return
+	}
 
+	var input banner.UpdateBanner
+	if err := c.BindJSON(&input); err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid input body")
+		return
+	}
+
+	err = h.services.Banner.Patch(input, bannerId)
+	if err != nil {
+		switch err.(type) {
+		case *errs.ErrBannerNotFound:
+			c.Status(http.StatusNotFound)
+			return
+		case *errs.ErrBannerNotUnique:
+			newErrorResponse(c, http.StatusBadRequest, err.Error())
+			return
+		default:
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func (h *Handler) deleteBanner(c *gin.Context) {
+	bannerId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "wrong banner id format")
+		return
+	}
 
+	err = h.services.Banner.Delete(bannerId)
+	if err != nil {
+		switch err.(type) {
+		case *errs.ErrBannerNotFound:
+			c.Status(http.StatusNotFound)
+			return
+		default:
+			newErrorResponse(c, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	c.Status(http.StatusNoContent)
 }

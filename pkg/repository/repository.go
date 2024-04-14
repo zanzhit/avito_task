@@ -13,10 +13,12 @@ type Authorization interface {
 type Banner interface {
 	Create(banner banner.Banner) (int, error)
 	GetBanner(banner banner.Banner, limit, offset int) ([]banner.Banner, error)
+	Patch(banner banner.UpdateBanner, bannerId int) error
+	Delete(bannerId int) error
 }
 
 type UserBanner interface {
-	GetUserBanner(banner banner.UserBanner, lastRevision bool) (interface{}, error)
+	GetUserBanner(banner banner.UserBanner) (interface{}, error)
 }
 
 type Tag interface {

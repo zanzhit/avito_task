@@ -34,17 +34,17 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			banner.GET("", h.getBanner)
 			banner.POST("", h.createBanner)
 			banner.PATCH("/:id", h.updateBanner)
-			banner.DELETE("", h.deleteBanner)
+			banner.DELETE("/:id", h.deleteBanner)
 		}
 
 		feature := entities.Group("/feature")
 		{
-			feature.POST("/:id", h.createFeature)
+			feature.POST("", h.createFeature)
 		}
 
 		tag := entities.Group("/tag")
 		{
-			tag.POST("/:id", h.createTag)
+			tag.POST("", h.createTag)
 		}
 	}
 

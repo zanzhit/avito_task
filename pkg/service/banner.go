@@ -20,3 +20,11 @@ func (s *BannerService) Create(banner banner.Banner) (int, error) {
 func (s *BannerService) GetBanner(banner banner.Banner, limit, offset int) ([]banner.Banner, error) {
 	return s.repo.GetBanner(banner, limit, offset)
 }
+
+func (s *BannerService) Delete(bannerId int) error {
+	return s.repo.Delete(bannerId)
+}
+
+func (s *BannerService) Patch(banner banner.UpdateBanner, bannerId int) error {
+	return s.repo.Patch(banner, bannerId)
+}
