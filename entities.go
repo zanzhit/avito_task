@@ -2,6 +2,7 @@ package banner
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 )
 
@@ -19,6 +20,22 @@ type UserBanner struct {
 	Tag     int
 	Feature int
 	Content json.RawMessage `json:"content" db:"content"`
+}
+
+type UpdateBanner struct {
+	Content   *json.RawMessage
+	Tag       *[]int
+	Feature   *int
+	IsActive  *bool
+	UpdatedAt time.Time
+}
+
+func (i UpdateBanner) Validate() error {
+	if i.Content == nil && i.Tag == nil && i.Feature == nil && i.IsActive == nil {
+		return errors.New("update banner has no values")
+	}
+
+	return nil
 }
 
 type Tag struct {
